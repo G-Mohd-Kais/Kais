@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>G Mohd Kais | Admin Login</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="background-animation"></div>
+
+  <div class="login-container">
+    <h2>Admin Login</h2>
+    <input type="text" id="username" placeholder="Enter Username" />
+    <input type="password" id="password" placeholder="Enter Password" />
+    <button onclick="authenticateAdmin()">Login</button>
+    <p id="error-message" style="color: red; margin-top: 10px;"></p>
+  </div>
+
+  <script>
+    function authenticateAdmin() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('error-message');
+
+      const correctUsername = "admin";
+      const correctPassword = "Kais@730";
+
+      if (username === correctUsername && password === correctPassword) {
+        errorMsg.textContent = "";
+        window.location.href = "admin/admin.html"; // Redirect to actual admin dashboard
+      } else {
+        errorMsg.textContent = "Incorrect username or password. Please try again.";
+      }
+    }
+
+    document.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        authenticateAdmin();
+      }
+    });
+  </script>
+
+  <script src="../js/script.js"></script>
+</body>
+</html>
