@@ -1,0 +1,92 @@
+/* Global Styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f2f2f2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #6e7dff, #7588f3);
+}
+
+/* Centering the login modal */
+.login-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 30px 50px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  animation: fadeIn 1s ease-out;
+}
+
+.login-container h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #333;
+  animation: slideInFromTop 1s ease-out;
+}
+
+input[type="text"], input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin: 15px 0;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+  border-color: #6e7dff;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #6e7dff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+button:hover {
+  background-color: #7588f3;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInFromTop {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Background Animation */
+.background-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, #6e7dff, #7588f3);
+  animation: backgroundAnimation 5s ease infinite;
+  z-index: -1;
+}
+
+@keyframes backgroundAnimation {
+  0% { background: linear-gradient(45deg, #6e7dff, #7588f3); }
+  50% { background: linear-gradient(45deg, #7588f3, #6e7dff); }
+  100% { background: linear-gradient(45deg, #6e7dff, #7588f3); }
+}
