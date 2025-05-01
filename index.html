@@ -187,16 +187,22 @@
         
         .upload-progress {
             height: 5px;
-            background: #f0f0f0;
+            background: #eee;
             margin-top: 5px;
             display: none;
         }
         
         .upload-progress-bar {
             height: 100%;
-            background: var(--primary-color);
+            background: #4CAF50;
             width: 0%;
             transition: width 0.3s;
+        }
+        
+        .file-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
         }
         
         /* Responsive adjustments */
@@ -209,8 +215,8 @@
     </style>
 </head>
 <body>
-    <!-- Admin Header -->
-    <header class="admin-header">
+    <!-- Admin Header (hidden until login) -->
+    <header class="admin-header" id="admin-header" style="display: none;">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">Portfolio Admin</h3>
@@ -218,7 +224,7 @@
                     <button id="save-btn" class="btn btn-success mr-2">
                         <i class="fas fa-save mr-1"></i> Save All Changes
                     </button>
-                    <a href="https://github.com/G-Mohd-Kais/Mohammed" class="btn btn-light">
+                    <a href="public.html" class="btn btn-light">
                         <i class="fas fa-eye mr-1"></i> View Portfolio
                     </a>
                 </div>
@@ -231,7 +237,7 @@
         <h3 class="text-center mb-4">Admin Login</h3>
         <div class="form-group">
             <label>Email</label>
-            <input type="email" id="login-email" class="form-control" placeholder="Your admin email">
+            <input type="email" id="login-email" class="form-control" placeholder="admin@example.com">
         </div>
         <div class="form-group">
             <label>Password</label>
@@ -268,24 +274,24 @@
                 <!-- Resume Section -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        Resume Settings
+                        Resume
                     </div>
                     <div class="card-body">
                         <div class="form-group">
                             <label>Resume URL</label>
                             <div class="file-upload-wrapper">
-                                <input type="text" id="resume-url" class="form-control file-upload-input" placeholder="Resume URL or upload file">
-                                <button class="file-upload-button" data-target="resume-upload">Upload</button>
-                                <input type="file" id="resume-upload" accept=".pdf,.doc,.docx" style="display: none;">
+                                <input type="text" id="resume-url" class="form-control file-upload-input" placeholder="Resume URL" readonly>
+                                <button class="file-upload-button" id="resume-upload-btn">Upload</button>
+                                <input type="file" id="resume-upload" accept=".pdf,.doc,.docx,.txt,.rtf" style="display: none;">
                             </div>
-                            <img id="resume-preview" class="file-preview">
-                            <div class="upload-progress" id="resume-progress">
+                            <div class="file-info" id="resume-file-info"></div>
+                            <div class="upload-progress" id="resume-progress" style="display: none;">
                                 <div class="upload-progress-bar" id="resume-progress-bar"></div>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Description</label>
-                            <textarea id="resume-desc" class="form-control" rows="3" placeholder="Description about your resume"></textarea>
+                            <input type="text" id="resume-desc" class="form-control" placeholder="Resume description">
                         </div>
                     </div>
                 </div>
@@ -394,7 +400,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <script>
-        // Firebase configuration
+        // Firebase configuration - REPLACE WITH YOUR OWN CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyBl7UeClHdUhEQC4eJXH8cTFsy31XPFrII",
             authDomain: "portfolio-fc649.firebaseapp.com",
@@ -411,125 +417,162 @@
         const database = firebase.database();
         const auth = firebase.auth();
         const storage = firebase.storage();
-        
-        // DOM elements
-        const loginContainer = document.getElementById('login-container');
-        const adminContent = document.getElementById('admin-content');
-        const loginBtn = document.getElementById('login-btn');
-        const saveBtn = document.getElementById('save-btn');
-        
-        // Admin credentials (in a real app, use Firebase Auth properly)
-        const ADMIN_EMAIL = "admin";
-        const ADMIN_PASSWORD = "Kais@730";
-        
-        // Login functionality
-        loginBtn.addEventListener('click', () => {
+
+        // Enhanced login function with better error handling
+        document.getElementById('login-btn').addEventListener('click', async () => {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             
-            // Simple validation (replace with Firebase Auth in production)
-            if(email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-                loginContainer.style.display = 'none';
-                adminContent.style.display = 'block';
+            if (!email || !password) {
+                showLoginError("Please enter both email and password");
+                return;
+            }
+
+            // Show loading state
+            const loginBtn = document.getElementById('login-btn');
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Logging in...';
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                
+                // Hide login, show admin content
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('admin-header').style.display = 'block';
+                document.getElementById('admin-content').style.display = 'block';
+                
+                // Load data
                 loadPortfolioData();
                 initSortable();
                 initFileUploads();
-            } else {
-                document.getElementById('login-message').innerHTML = 
-                    '<div class="alert alert-danger">Invalid credentials. Please try again.</div>';
+                
+            } catch (error) {
+                console.error("Login error:", error);
+                let errorMessage = "Login failed. Please try again.";
+                
+                // More specific error messages
+                switch(error.code) {
+                    case 'auth/invalid-email':
+                        errorMessage = "Invalid email format";
+                        break;
+                    case 'auth/user-disabled':
+                        errorMessage = "This account has been disabled";
+                        break;
+                    case 'auth/user-not-found':
+                        errorMessage = "No account found with this email";
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = "Incorrect password";
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = "Too many attempts. Try again later";
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage = "Network error. Check your connection";
+                        break;
+                }
+                
+                showLoginError(errorMessage);
+            } finally {
+                // Reset login button
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'Login';
             }
         });
-        
-        // Initialize file upload functionality
+
+        function showLoginError(message) {
+            const errorElement = document.getElementById('login-message');
+            errorElement.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+        }
+
+        // Check auth state on page load
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('admin-header').style.display = 'block';
+                document.getElementById('admin-content').style.display = 'block';
+                loadPortfolioData();
+                initSortable();
+                initFileUploads();
+            }
+        });
+
+        // Initialize file uploads
         function initFileUploads() {
+            // Profile image upload
+            document.getElementById('profile-img').addEventListener('click', () => {
+                document.getElementById('profile-upload').click();
+            });
+
             // Resume upload
-            document.querySelector('[data-target="resume-upload"]').addEventListener('click', () => {
+            document.getElementById('resume-upload-btn').addEventListener('click', () => {
                 document.getElementById('resume-upload').click();
             });
-            
+
             document.getElementById('resume-upload').addEventListener('change', (e) => {
-                uploadFile(e.target.files[0], 'resume', 'resume-url', 'resume-preview', 'resume-progress', 'resume-progress-bar');
-            });
-            
-            // Add event listeners for dynamic project and certification uploads
-            document.addEventListener('click', (e) => {
-                if (e.target.classList.contains('project-upload-btn')) {
-                    const projectId = e.target.getAttribute('data-project-id');
-                    document.getElementById(`project-upload-${projectId}`).click();
-                }
-                
-                if (e.target.classList.contains('cert-upload-btn')) {
-                    const certId = e.target.getAttribute('data-cert-id');
-                    document.getElementById(`cert-upload-${certId}`).click();
-                }
-            });
-            
-            document.addEventListener('change', (e) => {
-                if (e.target.id && e.target.id.startsWith('project-upload-')) {
-                    const projectId = e.target.id.split('-')[2];
-                    const inputField = document.getElementById(`project-link-${projectId}`);
-                    const preview = document.getElementById(`project-preview-${projectId}`);
-                    const progress = document.getElementById(`project-progress-${projectId}`);
-                    const progressBar = document.getElementById(`project-progress-bar-${projectId}`);
-                    uploadFile(e.target.files[0], `projects/${projectId}`, inputField, preview, progress, progressBar);
-                }
-                
-                if (e.target.id && e.target.id.startsWith('cert-upload-')) {
-                    const certId = e.target.id.split('-')[2];
-                    const inputField = document.getElementById(`cert-link-${certId}`);
-                    const preview = document.getElementById(`cert-preview-${certId}`);
-                    const progress = document.getElementById(`cert-progress-${certId}`);
-                    const progressBar = document.getElementById(`cert-progress-bar-${certId}`);
-                    uploadFile(e.target.files[0], `certifications/${certId}`, inputField, preview, progress, progressBar);
-                }
+                const file = e.target.files[0];
+                if (!file) return;
+
+                uploadFile(
+                    file, 
+                    'resume', 
+                    'resume-url', 
+                    null, 
+                    'resume-progress', 
+                    'resume-progress-bar', 
+                    'resume-file-info'
+                );
             });
         }
-        
-        // File upload function
-        function uploadFile(file, pathPrefix, inputField, previewElement, progressElement, progressBarElement) {
-            if (!file) return;
-            
-            // Show progress bar
-            document.getElementById(progressElement).style.display = 'block';
-            document.getElementById(progressBarElement).style.width = '0%';
-            
-            // Create a storage reference
-            const storageRef = storage.ref(`${pathPrefix}/${file.name}`);
+
+        // Generic file upload function
+        function uploadFile(file, pathPrefix, inputId, previewElement, progressElement, progressBarElement, fileInfoElement) {
+            const storageRef = storage.ref(`${pathPrefix}/${Date.now()}_${file.name}`);
             const uploadTask = storageRef.put(file);
-            
-            // Listen for state changes, errors, and completion of the upload.
+
+            if (fileInfoElement) {
+                document.getElementById(fileInfoElement).textContent = `Uploading: ${file.name}`;
+            }
+
+            if (progressElement && progressBarElement) {
+                document.getElementById(progressElement).style.display = 'block';
+                document.getElementById(progressBarElement).style.width = '0%';
+            }
+
             uploadTask.on('state_changed',
                 (snapshot) => {
-                    // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    document.getElementById(progressBarElement).style.width = progress + '%';
+                    if (progressBarElement) {
+                        document.getElementById(progressBarElement).style.width = `${progress}%`;
+                    }
                 },
                 (error) => {
-                    // Handle unsuccessful uploads
-                    console.error('Upload failed:', error);
                     alert('Upload failed: ' + error.message);
-                    document.getElementById(progressElement).style.display = 'none';
+                    if (fileInfoElement) {
+                        document.getElementById(fileInfoElement).textContent = 'Upload failed';
+                    }
                 },
                 () => {
-                    // Handle successful uploads on complete
                     uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                        // Set the download URL to the input field
-                        inputField.value = downloadURL;
-                        
-                        // Show preview if it's an image
-                        if (file.type.startsWith('image/')) {
-                            previewElement.src = downloadURL;
-                            previewElement.style.display = 'block';
-                        } else {
-                            previewElement.style.display = 'none';
+                        if (inputId) {
+                            document.getElementById(inputId).value = downloadURL;
                         }
-                        
-                        document.getElementById(progressElement).style.display = 'none';
+                        if (previewElement) {
+                            const img = document.getElementById(previewElement);
+                            img.src = downloadURL;
+                            img.style.display = 'block';
+                        }
+                        if (fileInfoElement) {
+                            document.getElementById(fileInfoElement).textContent = `Uploaded: ${file.name} ✅`;
+                        }
+                        if (progressElement) {
+                            document.getElementById(progressElement).style.display = 'none';
+                        }
                     });
                 }
             );
         }
-        
+
         // Load portfolio data from Firebase
         function loadPortfolioData() {
             database.ref('portfolio').once('value').then(snapshot => {
@@ -547,10 +590,8 @@
                     document.getElementById('resume-url').value = data.resume.url || '';
                     document.getElementById('resume-desc').value = data.resume.description || '';
                     
-                    // Show preview if it's an image
-                    if (data.resume.url && (data.resume.url.endsWith('.jpg') || data.resume.url.endsWith('.jpeg') || data.resume.url.endsWith('.png'))) {
-                        document.getElementById('resume-preview').src = data.resume.url;
-                        document.getElementById('resume-preview').style.display = 'block';
+                    if (data.resume.url) {
+                        document.getElementById('resume-file-info').textContent = 'Current file: ' + extractFileNameFromURL(data.resume.url);
                     }
                 }
                 
@@ -590,7 +631,18 @@
                 }
             });
         }
-        
+
+        // Helper function to extract file name from URL
+        function extractFileNameFromURL(url) {
+            try {
+                const urlObj = new URL(url);
+                const pathParts = urlObj.pathname.split('/');
+                return decodeURIComponent(pathParts[pathParts.length - 1]);
+            } catch (e) {
+                return url;
+            }
+        }
+
         // Create project element for admin
         function createProjectElement(project, index) {
             const element = document.createElement('div');
@@ -613,26 +665,28 @@
                         <textarea class="form-control project-desc" rows="2">${project.description || ''}</textarea>
                     </div>
                     <div class="form-group">
-                        <label>Image URL</label>
+                        <label>Preview Image</label>
                         <div class="file-upload-wrapper">
-                            <input type="text" id="project-image-${index}" class="form-control file-upload-input project-image" value="${project.image || ''}" placeholder="Image URL or upload file">
-                            <button class="file-upload-button project-upload-btn" data-project-id="${index}">Upload</button>
-                            <input type="file" id="project-upload-${index}" accept="image/*" style="display: none;">
+                            <input type="text" id="project-image-${index}" class="form-control file-upload-input project-image" value="${project.image || ''}" placeholder="Image URL or upload file" readonly>
+                            <button class="file-upload-button project-image-upload-btn" data-project-id="${index}">Upload</button>
+                            <input type="file" id="project-image-upload-${index}" accept="image/*" style="display: none;">
                         </div>
                         <img id="project-preview-${index}" class="file-preview" src="${project.image || ''}" ${project.image ? '' : 'style="display: none;"'}>
-                        <div class="upload-progress" id="project-progress-${index}" style="display: none;">
-                            <div class="upload-progress-bar" id="project-progress-bar-${index}"></div>
+                        <div class="file-info" id="project-image-info-${index}">${project.image ? 'Current file: ' + extractFileNameFromURL(project.image) : ''}</div>
+                        <div class="upload-progress" id="project-image-progress-${index}" style="display: none;">
+                            <div class="upload-progress-bar" id="project-image-progress-bar-${index}"></div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Project File URL</label>
+                        <label>Project File</label>
                         <div class="file-upload-wrapper">
-                            <input type="text" id="project-link-${index}" class="form-control file-upload-input project-link" value="${project.link || ''}" placeholder="Project URL or upload file">
-                            <button class="file-upload-button project-upload-btn" data-project-id="${index}">Upload</button>
-                            <input type="file" id="project-upload-${index}" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip" style="display: none;">
+                            <input type="text" id="project-link-${index}" class="form-control file-upload-input project-link" value="${project.link || ''}" placeholder="Project file URL or upload file" readonly>
+                            <button class="file-upload-button project-file-upload-btn" data-project-id="${index}">Upload</button>
+                            <input type="file" id="project-file-upload-${index}" accept="*/*" style="display: none;">
                         </div>
-                        <div class="upload-progress" id="project-progress-${index}" style="display: none;">
-                            <div class="upload-progress-bar" id="project-progress-bar-${index}"></div>
+                        <div class="file-info" id="project-file-info-${index}">${project.link ? 'Current file: ' + extractFileNameFromURL(project.link) : ''}</div>
+                        <div class="upload-progress" id="project-file-progress-${index}" style="display: none;">
+                            <div class="upload-progress-bar" id="project-file-progress-bar-${index}"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -643,7 +697,7 @@
             `;
             return element;
         }
-        
+
         // Create certification element for admin
         function createCertificationElement(cert, index) {
             const element = document.createElement('div');
@@ -666,26 +720,28 @@
                         <textarea class="form-control cert-desc" rows="2">${cert.description || ''}</textarea>
                     </div>
                     <div class="form-group">
-                        <label>Image URL</label>
+                        <label>Preview Image</label>
                         <div class="file-upload-wrapper">
-                            <input type="text" id="cert-image-${index}" class="form-control file-upload-input cert-image" value="${cert.image || ''}" placeholder="Image URL or upload file">
-                            <button class="file-upload-button cert-upload-btn" data-cert-id="${index}">Upload</button>
-                            <input type="file" id="cert-upload-${index}" accept="image/*" style="display: none;">
+                            <input type="text" id="cert-image-${index}" class="form-control file-upload-input cert-image" value="${cert.image || ''}" placeholder="Image URL or upload file" readonly>
+                            <button class="file-upload-button cert-image-upload-btn" data-cert-id="${index}">Upload</button>
+                            <input type="file" id="cert-image-upload-${index}" accept="image/*" style="display: none;">
                         </div>
                         <img id="cert-preview-${index}" class="file-preview" src="${cert.image || ''}" ${cert.image ? '' : 'style="display: none;"'}>
-                        <div class="upload-progress" id="cert-progress-${index}" style="display: none;">
-                            <div class="upload-progress-bar" id="cert-progress-bar-${index}"></div>
+                        <div class="file-info" id="cert-image-info-${index}">${cert.image ? 'Current file: ' + extractFileNameFromURL(cert.image) : ''}</div>
+                        <div class="upload-progress" id="cert-image-progress-${index}" style="display: none;">
+                            <div class="upload-progress-bar" id="cert-image-progress-bar-${index}"></div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Certificate File URL</label>
+                        <label>Certificate File</label>
                         <div class="file-upload-wrapper">
-                            <input type="text" id="cert-link-${index}" class="form-control file-upload-input cert-link" value="${cert.link || ''}" placeholder="Certificate URL or upload file">
-                            <button class="file-upload-button cert-upload-btn" data-cert-id="${index}">Upload</button>
-                            <input type="file" id="cert-upload-${index}" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;">
+                            <input type="text" id="cert-link-${index}" class="form-control file-upload-input cert-link" value="${cert.link || ''}" placeholder="Certificate URL or upload file" readonly>
+                            <button class="file-upload-button cert-file-upload-btn" data-cert-id="${index}">Upload</button>
+                            <input type="file" id="cert-file-upload-${index}" accept="*/*" style="display: none;">
                         </div>
-                        <div class="upload-progress" id="cert-progress-${index}" style="display: none;">
-                            <div class="upload-progress-bar" id="cert-progress-bar-${index}"></div>
+                        <div class="file-info" id="cert-file-info-${index}">${cert.link ? 'Current file: ' + extractFileNameFromURL(cert.link) : ''}</div>
+                        <div class="upload-progress" id="cert-file-progress-${index}" style="display: none;">
+                            <div class="upload-progress-bar" id="cert-file-progress-bar-${index}"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -696,7 +752,7 @@
             `;
             return element;
         }
-        
+
         // Create skill element for admin
         function createSkillElement(skill, index) {
             const element = document.createElement('div');
@@ -710,7 +766,7 @@
             `;
             return element;
         }
-        
+
         // Initialize sortable lists
         function initSortable() {
             new Sortable(document.getElementById('projects-list'), {
@@ -725,7 +781,7 @@
                 ghostClass: 'sortable-ghost'
             });
         }
-        
+
         // Add new project
         document.getElementById('add-project').addEventListener('click', () => {
             const projectsList = document.getElementById('projects-list');
@@ -738,7 +794,7 @@
             };
             projectsList.appendChild(createProjectElement(newProject, projectsList.children.length));
         });
-        
+
         // Add new certification
         document.getElementById('add-certification').addEventListener('click', () => {
             const certsList = document.getElementById('certifications-list');
@@ -751,7 +807,7 @@
             };
             certsList.appendChild(createCertificationElement(newCert, certsList.children.length));
         });
-        
+
         // Add new skill
         document.getElementById('add-skill').addEventListener('click', () => {
             const newSkill = document.getElementById('new-skill').value.trim();
@@ -761,7 +817,7 @@
                 document.getElementById('new-skill').value = '';
             }
         });
-        
+
         // Remove items
         document.addEventListener('click', (e) => {
             if(e.target.closest('.remove-item')) {
@@ -772,7 +828,7 @@
                 e.target.closest('.skill-badge').remove();
             }
         });
-        
+
         // Profile image upload and cropping
         let cropper;
         const profileImg = document.getElementById('profile-img');
@@ -816,13 +872,32 @@
                 fillColor: '#fff'
             });
             
-            profileImg.src = canvas.toDataURL('image/jpeg');
-            cropModal.style.display = 'none';
-            cropper.destroy();
+            // Upload the cropped image to Firebase Storage
+            canvas.toBlob((blob) => {
+                const storageRef = storage.ref(`profile_images/${Date.now()}_profile.jpg`);
+                const uploadTask = storageRef.put(blob);
+                
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        // Progress monitoring if needed
+                    },
+                    (error) => {
+                        console.error('Upload failed:', error);
+                        alert('Profile image upload failed: ' + error.message);
+                    },
+                    () => {
+                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            profileImg.src = downloadURL;
+                            cropModal.style.display = 'none';
+                            cropper.destroy();
+                        });
+                    }
+                );
+            }, 'image/jpeg', 0.9);
         });
-        
+
         // Save all data to Firebase
-        saveBtn.addEventListener('click', () => {
+        document.getElementById('save-btn').addEventListener('click', () => {
             // Collect all data
             const portfolioData = {
                 hero: {
