@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Admin</title>
+    <title>Admin Dashboard | G Mohammed Kais Portfolio</title>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -12,953 +12,1837 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Cropper.js CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <!-- Summernote WYSIWYG Editor -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+    
+    <!-- Color Picker -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/3.4.0/css/bootstrap-colorpicker.min.css">
     
     <style>
         :root {
-            --primary-color: #3498db;
-            --primary-dark: #2980b9;
-            --secondary-color: #2c3e50;
-            --accent-color: #e74c3c;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-            --text-color: #333;
-            --cream-bg: #f9f5f0;
-            --transition: all 0.3s ease;
+            --admin-primary: #4361ee;
+            --admin-secondary: #3a0ca3;
+            --admin-dark: #212529;
+            --admin-light: #f8f9fa;
+            --admin-success: #28a745;
+            --admin-danger: #dc3545;
+            --admin-warning: #ffc107;
+            --admin-info: #17a2b8;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--cream-bg);
-            padding-top: 70px;
+            background-color: #f5f7fa;
         }
         
-        .admin-header {
-            background-color: var(--secondary-color);
+        .sidebar {
+            background: linear-gradient(135deg, var(--admin-dark), #000);
             color: white;
-            padding: 15px 0;
+            height: 100vh;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            width: 280px;
+            transition: all 0.3s;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
         }
         
-        .card {
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .sidebar-menu a {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            display: block;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--admin-primary);
+        }
+        
+        .sidebar-menu a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .admin-card {
             border: none;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
-            transition: var(--transition);
+            background: white;
+            transition: all 0.3s;
         }
         
-        .card:hover {
-            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-            transform: translateY(-3px);
+        .admin-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
         }
         
-        .card-header {
-            background-color: var(--primary-color);
-            color: white;
+        .admin-card-header {
+            background: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0;
             font-weight: 600;
-            border-radius: 10px 10px 0 0 !important;
         }
         
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+        .admin-card-body {
+            padding: 20px;
         }
         
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
+        .nav-tabs .nav-link.active {
+            border-bottom: 3px solid var(--admin-primary);
+            font-weight: 600;
         }
         
-        .btn-danger {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
+        .preview-container {
+            border: 1px dashed #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            background: white;
+            margin-top: 20px;
         }
         
-        .profile-img {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
+        .color-option {
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            border: 4px solid var(--primary-color);
+            display: inline-block;
+            margin-right: 10px;
             cursor: pointer;
-            transition: var(--transition);
+            border: 2px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        .profile-img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        .color-option.active {
+            border: 2px solid var(--admin-dark);
         }
         
-        .skill-badge {
-            font-size: 0.9rem;
-            margin-right: 8px;
-            margin-bottom: 8px;
+        .section-preview {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: white;
         }
         
-        .sortable-item {
+        .section-handle {
             cursor: move;
-            transition: var(--transition);
-        }
-        
-        .sortable-item:hover {
-            background-color: rgba(52, 152, 219, 0.1);
-        }
-        
-        /* Cropper Modal */
-        #cropModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            z-index: 2000;
-            justify-content: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
         
-        .cropper-container {
-            max-width: 80vw;
-            max-height: 80vh;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 10px;
         }
         
-        /* Login Form */
-        .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        /* File upload styles */
-        .file-upload-wrapper {
-            position: relative;
-            margin-bottom: 15px;
-        }
-        
-        .file-upload-input {
+        .theme-preview {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            height: 100px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
         }
         
-        .file-upload-button {
+        .theme-preview .primary {
+            height: 70%;
+            width: 40%;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        .theme-preview .secondary {
+            height: 70%;
+            width: 30%;
+            position: absolute;
+            left: 40%;
+            top: 0;
+        }
+        
+        .theme-preview .accent {
+            height: 30%;
+            width: 30%;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+        }
+        
+        .theme-preview .dark {
+            height: 30%;
+            width: 40%;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+        }
+        
+        .theme-preview .light {
+            height: 30%;
+            width: 30%;
             position: absolute;
             right: 0;
             top: 0;
-            height: 100%;
-            padding: 0 15px;
-            background: var(--primary-color);
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+                overflow: hidden;
+            }
+            
+            .sidebar-header h3, .sidebar-menu a span {
+                display: none;
+            }
+            
+            .sidebar-menu a {
+                text-align: center;
+                padding: 15px 0;
+            }
+            
+            .sidebar-menu a i {
+                margin-right: 0;
+                font-size: 1.2rem;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                position: fixed;
+            }
+            
+            .sidebar.active {
+                width: 280px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block !important;
+            }
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1100;
+            background: var(--admin-primary);
             color: white;
             border: none;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-        }
-        
-        .file-upload-button:hover {
-            background: var(--primary-dark);
-        }
-        
-        .file-preview {
-            margin-top: 10px;
-            max-width: 100%;
-            max-height: 200px;
-            display: none;
-        }
-        
-        .upload-progress {
-            height: 5px;
-            background: #eee;
-            margin-top: 5px;
-            display: none;
-        }
-        
-        .upload-progress-bar {
-            height: 100%;
-            background: #4CAF50;
-            width: 0%;
-            transition: width 0.3s;
-        }
-        
-        .file-info {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .profile-img {
-                width: 120px;
-                height: 120px;
-            }
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
         }
     </style>
 </head>
 <body>
-    <!-- Admin Header (hidden until login) -->
-    <header class="admin-header" id="admin-header" style="display: none;">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">Portfolio Admin</h3>
-                <div>
-                    <button id="save-btn" class="btn btn-success mr-2">
-                        <i class="fas fa-save mr-1"></i> Save All Changes
-                    </button>
-                    <a href="public.html" class="btn btn-light">
-                        <i class="fas fa-eye mr-1"></i> View Portfolio
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Login Form (initially shown) -->
-    <div id="login-container" class="login-container">
-        <h3 class="text-center mb-4">Admin Login</h3>
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="login-email" class="form-control" placeholder="admin@example.com">
-        </div>
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="login-password" class="form-control" placeholder="Your password">
-        </div>
-        <button id="login-btn" class="btn btn-primary btn-block">Login</button>
-        <div id="login-message" class="mt-3 text-center"></div>
-    </div>
-
-    <!-- Admin Content (initially hidden) -->
-    <div id="admin-content" class="container py-4" style="display: none;">
-        <div class="row">
-            <!-- Left Column -->
-            <div class="col-md-4">
-                <!-- Profile Section -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        Profile Information
-                    </div>
-                    <div class="card-body text-center">
-                        <img id="profile-img" src="https://via.placeholder.com/150" class="profile-img mb-3" alt="Profile Image">
-                        <input type="file" id="profile-upload" accept="image/*" style="display: none;">
-                        <div class="form-group text-left">
-                            <label>Your Name</label>
-                            <input type="text" id="profile-name" class="form-control" placeholder="Your full name">
-                        </div>
-                        <div class="form-group text-left">
-                            <label>Your Title</label>
-                            <input type="text" id="profile-title" class="form-control" placeholder="Your professional title">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Resume Section -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        Resume
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>Resume URL</label>
-                            <div class="file-upload-wrapper">
-                                <input type="text" id="resume-url" class="form-control file-upload-input" placeholder="Resume URL" readonly>
-                                <button class="file-upload-button" id="resume-upload-btn">Upload</button>
-                                <input type="file" id="resume-upload" accept=".pdf,.doc,.docx,.txt,.rtf" style="display: none;">
-                            </div>
-                            <div class="file-info" id="resume-file-info"></div>
-                            <div class="upload-progress" id="resume-progress" style="display: none;">
-                                <div class="upload-progress-bar" id="resume-progress-bar"></div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Description</label>
-                            <input type="text" id="resume-desc" class="form-control" placeholder="Resume description">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Social Links -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        Social Links
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label><i class="fab fa-twitter mr-2"></i>Twitter URL</label>
-                            <input type="url" id="social-twitter" class="form-control" placeholder="https://twitter.com/username">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fab fa-github mr-2"></i>GitHub URL</label>
-                            <input type="url" id="social-github" class="form-control" placeholder="https://github.com/username">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fab fa-linkedin mr-2"></i>LinkedIn URL</label>
-                            <input type="url" id="social-linkedin" class="form-control" placeholder="https://linkedin.com/in/username">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fab fa-instagram mr-2"></i>Instagram URL</label>
-                            <input type="url" id="social-instagram" class="form-control" placeholder="https://instagram.com/username">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column -->
-            <div class="col-md-8">
-                <!-- Projects Section -->
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Projects</span>
-                        <button id="add-project" class="btn btn-sm btn-primary">
-                            <i class="fas fa-plus mr-1"></i> Add Project
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div id="projects-list" class="sortable-list">
-                            <!-- Projects will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Certifications Section -->
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Certifications</span>
-                        <button id="add-certification" class="btn btn-sm btn-primary">
-                            <i class="fas fa-plus mr-1"></i> Add Certification
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div id="certifications-list" class="sortable-list">
-                            <!-- Certifications will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Skills Section -->
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Skills</span>
-                        <div class="input-group" style="width: 250px;">
-                            <input type="text" id="new-skill" class="form-control form-control-sm" placeholder="New skill">
-                            <div class="input-group-append">
-                                <button id="add-skill" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="skills-container" class="d-flex flex-wrap">
-                            <!-- Skills will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cropper Modal -->
-    <div id="cropModal">
-        <div class="cropper-container">
-            <img id="cropImage" style="max-width: 100%; max-height: 60vh;">
-            <div class="text-right mt-3">
-                <button id="crop-cancel" class="btn btn-secondary mr-2">Cancel</button>
-                <button id="crop-save" class="btn btn-primary">Crop & Save</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- jQuery and Bootstrap -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+    </button>
     
-    <!-- SortableJS for drag and drop -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3 class="text-center">Admin Dashboard</h3>
+        </div>
+        <div class="sidebar-menu">
+            <a href="#" class="active" data-target="dashboard"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+            <a href="#" data-target="hero"><i class="fas fa-home"></i> <span>Hero Section</span></a>
+            <a href="#" data-target="about"><i class="fas fa-user"></i> <span>About Section</span></a>
+            <a href="#" data-target="projects"><i class="fas fa-project-diagram"></i> <span>Projects</span></a>
+            <a href="#" data-target="certifications"><i class="fas fa-certificate"></i> <span>Certifications</span></a>
+            <a href="#" data-target="resume"><i class="fas fa-file-alt"></i> <span>Resume</span></a>
+            <a href="#" data-target="messages"><i class="fas fa-envelope"></i> <span>Messages</span></a>
+            <a href="../index.html" target="_blank"><i class="fas fa-eye"></i> <span>View Site</span></a>
+            <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+        </div>
+    </div>
     
-    <!-- Cropper.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-
-    <script>
-        // Firebase configuration - REPLACE WITH YOUR OWN CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyBl7UeClHdUhEQC4eJXH8cTFsy31XPFrII",
-            authDomain: "portfolio-fc649.firebaseapp.com",
-            databaseURL: "https://portfolio-fc649-default-rtdb.firebaseio.com",
-            projectId: "portfolio-fc649",
-            storageBucket: "portfolio-fc649.appspot.com",
-            messagingSenderId: "134392119777",
-            appId: "1:134392119777:web:8b1fccb70bfe26886052a0",
-            measurementId: "G-FYDPK3854Q"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const auth = firebase.auth();
-        const storage = firebase.storage();
-
-        // Enhanced login function with better error handling
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Dashboard Section -->
+        <div class="admin-section" id="dashboard-section">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2 class="mb-0">Dashboard</h2>
+                    <p class="text-muted">Welcome back! Manage your portfolio website from here.</p>
+                </div>
+            </div>
             
-            if (!email || !password) {
-                showLoginError("Please enter both email and password");
-                return;
-            }
-
-            // Show loading state
-            const loginBtn = document.getElementById('login-btn');
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Logging in...';
-
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="admin-card">
+                        <div class="admin-card-body text-center">
+                            <div class="display-4 text-primary mb-2">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <h4>Site Visitors</h4>
+                            <h2 class="mb-3" id="visitorCount">1,245</h2>
+                            <p class="text-muted">Last 30 days</p>
+                        </div>
+                    </div>
+                </div>
                 
-                // Hide login, show admin content
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('admin-header').style.display = 'block';
-                document.getElementById('admin-content').style.display = 'block';
+                <div class="col-md-4">
+                    <div class="admin-card">
+                        <div class="admin-card-body text-center">
+                            <div class="display-4 text-success mb-2">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h4>Messages</h4>
+                            <h2 class="mb-3" id="messageCount">42</h2>
+                            <p class="text-muted">Pending inquiries</p>
+                        </div>
+                    </div>
+                </div>
                 
-                // Load data
-                loadPortfolioData();
-                initSortable();
-                initFileUploads();
+                <div class="col-md-4">
+                    <div class="admin-card">
+                        <div class="admin-card-body text-center">
+                            <div class="display-4 text-warning mb-2">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <h4>Projects</h4>
+                            <h2 class="mb-3" id="projectCount">12</h2>
+                            <p class="text-muted">Displayed on site</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Quick Actions</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="row text-center">
+                                <div class="col-md-2 col-6 mb-3">
+                                    <a href="#" class="btn btn-outline-primary btn-block quick-action" data-target="hero">
+                                        <i class="fas fa-home fa-2x mb-2"></i><br>
+                                        Edit Hero
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-6 mb-3">
+                                    <a href="#" class="btn btn-outline-primary btn-block quick-action" data-target="projects">
+                                        <i class="fas fa-project-diagram fa-2x mb-2"></i><br>
+                                        Add Project
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-6 mb-3">
+                                    <a href="#" class="btn btn-outline-primary btn-block quick-action" data-target="certifications">
+                                        <i class="fas fa-certificate fa-2x mb-2"></i><br>
+                                        Add Certification
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-6 mb-3">
+                                    <a href="#" class="btn btn-outline-primary btn-block quick-action" data-target="media">
+                                        <i class="fas fa-image fa-2x mb-2"></i><br>
+                                        Upload Image
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-6 mb-3">
+                                    <a href="#" class="btn btn-outline-primary btn-block quick-action" data-target="theme">
+                                        <i class="fas fa-palette fa-2x mb-2"></i><br>
+                                        Change Theme
+                                    </a>
+                                </div>
+                                <div class="col-md-2 col-6 mb-3">
+                                    <a href="#" class="btn btn-outline-primary btn-block quick-action" data-target="resume">
+                                        <i class="fas fa-file-alt fa-2x mb-2"></i><br>
+                                        Update Resume
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Recent Messages</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="list-group">
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Job Inquiry</h6>
+                                        <small>2 days ago</small>
+                                    </div>
+                                    <p class="mb-1">From: john.doe@example.com</p>
+                                    <small>Regarding potential data analysis project...</small>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Collaboration Request</h6>
+                                        <small>5 days ago</small>
+                                    </div>
+                                    <p class="mb-1">From: sarah@techcompany.com</p>
+                                    <small>Interested in your CRM expertise...</small>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Speaking Engagement</h6>
+                                        <small>1 week ago</small>
+                                    </div>
+                                    <p class="mb-1">From: events@dataconf.org</p>
+                                    <small>Invitation to speak at our conference...</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-            } catch (error) {
-                console.error("Login error:", error);
-                let errorMessage = "Login failed. Please try again.";
-                
-                // More specific error messages
-                switch(error.code) {
-                    case 'auth/invalid-email':
-                        errorMessage = "Invalid email format";
-                        break;
-                    case 'auth/user-disabled':
-                        errorMessage = "This account has been disabled";
-                        break;
-                    case 'auth/user-not-found':
-                        errorMessage = "No account found with this email";
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage = "Incorrect password";
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage = "Too many attempts. Try again later";
-                        break;
-                    case 'auth/network-request-failed':
-                        errorMessage = "Network error. Check your connection";
-                        break;
-                }
-                
-                showLoginError(errorMessage);
-            } finally {
-                // Reset login button
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = 'Login';
-            }
-        });
-
-        function showLoginError(message) {
-            const errorElement = document.getElementById('login-message');
-            errorElement.innerHTML = `<div class="alert alert-danger">${message}</div>`;
-        }
-
-        // Check auth state on page load
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('admin-header').style.display = 'block';
-                document.getElementById('admin-content').style.display = 'block';
-                loadPortfolioData();
-                initSortable();
-                initFileUploads();
-            }
-        });
-
-        // Initialize file uploads
-        function initFileUploads() {
-            // Profile image upload
-            document.getElementById('profile-img').addEventListener('click', () => {
-                document.getElementById('profile-upload').click();
-            });
-
-            // Resume upload
-            document.getElementById('resume-upload-btn').addEventListener('click', () => {
-                document.getElementById('resume-upload').click();
-            });
-
-            document.getElementById('resume-upload').addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                uploadFile(
-                    file, 
-                    'resume', 
-                    'resume-url', 
-                    null, 
-                    'resume-progress', 
-                    'resume-progress-bar', 
-                    'resume-file-info'
-                );
-            });
-        }
-
-        // Generic file upload function
-        function uploadFile(file, pathPrefix, inputId, previewElement, progressElement, progressBarElement, fileInfoElement) {
-            const storageRef = storage.ref(`${pathPrefix}/${Date.now()}_${file.name}`);
-            const uploadTask = storageRef.put(file);
-
-            if (fileInfoElement) {
-                document.getElementById(fileInfoElement).textContent = `Uploading: ${file.name}`;
-            }
-
-            if (progressElement && progressBarElement) {
-                document.getElementById(progressElement).style.display = 'block';
-                document.getElementById(progressBarElement).style.width = '0%';
-            }
-
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    if (progressBarElement) {
-                        document.getElementById(progressBarElement).style.width = `${progress}%`;
-                    }
-                },
-                (error) => {
-                    alert('Upload failed: ' + error.message);
-                    if (fileInfoElement) {
-                        document.getElementById(fileInfoElement).textContent = 'Upload failed';
-                    }
-                },
-                () => {
-                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                        if (inputId) {
-                            document.getElementById(inputId).value = downloadURL;
-                        }
-                        if (previewElement) {
-                            const img = document.getElementById(previewElement);
-                            img.src = downloadURL;
-                            img.style.display = 'block';
-                        }
-                        if (fileInfoElement) {
-                            document.getElementById(fileInfoElement).textContent = `Uploaded: ${file.name} ✅`;
-                        }
-                        if (progressElement) {
-                            document.getElementById(progressElement).style.display = 'none';
-                        }
-                    });
-                }
-            );
-        }
-
-        // Load portfolio data from Firebase
-        function loadPortfolioData() {
-            database.ref('portfolio').once('value').then(snapshot => {
-                const data = snapshot.val() || {};
-                
-                // Profile info
-                if(data.hero) {
-                    document.getElementById('profile-name').value = data.hero.title || '';
-                    document.getElementById('profile-title').value = data.hero.subtitle || '';
-                    document.getElementById('profile-img').src = data.hero.image || 'https://via.placeholder.com/150';
-                }
-                
-                // Resume
-                if(data.resume) {
-                    document.getElementById('resume-url').value = data.resume.url || '';
-                    document.getElementById('resume-desc').value = data.resume.description || '';
+                <div class="col-md-6">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Site Activity</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="activity-timeline">
+                                <div class="activity-item">
+                                    <div class="activity-badge"></div>
+                                    <div class="activity-content">
+                                        <small class="text-muted">Today, 10:30 AM</small>
+                                        <p>Updated the "About Me" section</p>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-badge"></div>
+                                    <div class="activity-content">
+                                        <small class="text-muted">Yesterday, 3:15 PM</small>
+                                        <p>Added new project: "Customer Segmentation Analysis"</p>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-badge"></div>
+                                    <div class="activity-content">
+                                        <small class="text-muted">2 days ago, 9:45 AM</small>
+                                        <p>Changed website color theme to "Ocean Blue"</p>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-badge"></div>
+                                    <div class="activity-content">
+                                        <small class="text-muted">1 week ago, 11:20 AM</small>
+                                        <p>Uploaded new resume file</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hero Section Editor -->
+        <div class="admin-section" id="hero-section" style="display:none;">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2 class="mb-0">Hero Section Editor</h2>
+                    <p class="text-muted">Customize the main hero section of your portfolio.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Content</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" id="hero-title" value="Hi, I'm G Mohammed Kais">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subtitle</label>
+                                <input type="text" class="form-control" id="hero-subtitle" value="Senior Associate | CRM | Data Analyst">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="hero-description" rows="3">Transforming data into actionable insights and building meaningful customer relationships</textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Primary Button Text</label>
+                                        <input type="text" class="form-control" id="hero-btn1-text" value="View My Work">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Primary Button Link</label>
+                                        <input type="text" class="form-control" id="hero-btn1-link" value="#projects">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Secondary Button Text</label>
+                                        <input type="text" class="form-control" id="hero-btn2-text" value="Contact Me">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Secondary Button Link</label>
+                                        <input type="text" class="form-control" id="hero-btn2-link" value="#contact">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
-                    if (data.resume.url) {
-                        document.getElementById('resume-file-info').textContent = 'Current file: ' + extractFileNameFromURL(data.resume.url);
-                    }
-                }
+                    <div class="admin-card mt-4">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Background Settings</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Background Type</label>
+                                <select class="form-select" id="hero-bg-type">
+                                    <option value="gradient">Gradient</option>
+                                    <option value="image">Image</option>
+                                    <option value="color">Solid Color</option>
+                                </select>
+                            </div>
+                            
+                            <div id="hero-gradient-settings">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Start Color</label>
+                                        <input type="color" class="form-control form-control-color" id="hero-gradient-start" value="#3a0ca3">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">End Color</label>
+                                        <input type="color" class="form-control form-control-color" id="hero-gradient-end" value="#7209b7">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Gradient Direction</label>
+                                    <select class="form-select" id="hero-gradient-direction">
+                                        <option value="135deg">Diagonal (Top Left to Bottom Right)</option>
+                                        <option value="to right">Horizontal (Left to Right)</option>
+                                        <option value="to bottom">Vertical (Top to Bottom)</option>
+                                        <option value="circle">Radial</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div id="hero-image-settings" style="display:none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Background Image</label>
+                                    <input type="file" class="form-control" id="hero-bg-image">
+                                    <small class="text-muted">Recommended size: 1920x1080 pixels</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Overlay Color</label>
+                                    <input type="color" class="form-control form-control-color" id="hero-overlay-color" value="#000000">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Overlay Opacity</label>
+                                    <input type="range" class="form-range" id="hero-overlay-opacity" min="0" max="1" step="0.1" value="0.5">
+                                </div>
+                            </div>
+                            
+                            <div id="hero-color-settings" style="display:none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Background Color</label>
+                                    <input type="color" class="form-control form-control-color" id="hero-solid-color" value="#3a0ca3">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                // Social links
-                if(data.social) {
-                    document.getElementById('social-twitter').value = data.social.twitter || '';
-                    document.getElementById('social-github').value = data.social.github || '';
-                    document.getElementById('social-linkedin').value = data.social.linkedin || '';
-                    document.getElementById('social-instagram').value = data.social.instagram || '';
-                }
+                <div class="col-md-4">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Profile Image</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="text-center mb-3">
+                                <img src="https://via.placeholder.com/300" id="hero-image-preview" class="img-fluid rounded-circle border" style="width: 200px; height: 200px; object-fit: cover;">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Upload New Image</label>
+                                <input type="file" class="form-control" id="hero-profile-image">
+                                <small class="text-muted">Recommended size: 600x600 pixels</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Border Color</label>
+                                <input type="color" class="form-control form-control-color" id="hero-image-border" value="#ffffff">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Border Width</label>
+                                <input type="number" class="form-control" id="hero-image-border-width" value="8" min="0" max="20">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Animation</label>
+                                <select class="form-select" id="hero-image-animation">
+                                    <option value="floating">Floating</option>
+                                    <option value="pulse">Pulse</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card mt-4">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Preview</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="preview-container" style="background: linear-gradient(135deg, #3a0ca3, #7209b7); color: white; padding: 20px; border-radius: 8px;">
+                                <h3 id="hero-preview-title">Hi, I'm <span style="color: #f72585;">G Mohammed Kais</span></h3>
+                                <p id="hero-preview-subtitle">Senior Associate | CRM | Data Analyst</p>
+                                <p id="hero-preview-desc">Transforming data into actionable insights and building meaningful customer relationships</p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-light btn-sm">View My Work</button>
+                                    <button class="btn btn-outline-light btn-sm">Contact Me</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-secondary">Reset</button>
+                        <button class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Section Editor -->
+        <div class="admin-section" id="about-section" style="display:none;">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2 class="mb-0">About Section Editor</h2>
+                    <p class="text-muted">Edit the content of your About Me section.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Section Title</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" id="about-title" value="About Me">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subtitle (Optional)</label>
+                                <input type="text" class="form-control" id="about-subtitle" placeholder="Enter a subtitle">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card mt-4">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">About Content</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Section Heading</label>
+                                <input type="text" class="form-control" id="about-heading" value="Who Am I?">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="about-description" rows="8"><p>I'm a passionate Data Analyst and CRM specialist with 5+ years of experience helping businesses leverage data to drive growth and improve customer relationships.</p>
+<p>My expertise lies in analyzing complex datasets, creating insightful visualizations, and implementing CRM strategies that enhance customer engagement and retention.</p></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card mt-4">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Highlight Items</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div id="about-highlights-container">
+                                <div class="highlight-item-editor mb-4 p-3 border rounded">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <div class="mb-3">
+                                                <label class="form-label">Icon</label>
+                                                <select class="form-select" id="highlight-icon-1">
+                                                    <option value="fa-graduation-cap">Graduation</option>
+                                                    <option value="fa-briefcase">Briefcase</option>
+                                                    <option value="fa-project-diagram">Project</option>
+                                                    <option value="fa-trophy">Trophy</option>
+                                                    <option value="fa-star">Star</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="mb-3">
+                                                <label class="form-label">Title</label>
+                                                <input type="text" class="form-control" id="highlight-title-1" value="Education">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="mb-3">
+                                                <label class="form-label">Description</label>
+                                                <input type="text" class="form-control" id="highlight-desc-1" value="Master's in Data Science">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-sm btn-danger">Remove</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="highlight-item-editor mb-4 p-3 border rounded">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <div class="mb-3">
+                                                <label class="form-label">Icon</label>
+                                                <select class="form-select" id="highlight-icon-2">
+                                                    <option value="fa-briefcase">Briefcase</option>
+                                                    <option value="fa-graduation-cap">Graduation</option>
+                                                    <option value="fa-project-diagram">Project</option>
+                                                    <option value="fa-trophy">Trophy</option>
+                                                    <option value="fa-star">Star</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="mb-3">
+                                                <label class="form-label">Title</label>
+                                                <input type="text" class="form-control" id="highlight-title-2" value="Experience">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="mb-3">
+                                                <label class="form-label">Description</label>
+                                                <input type="text" class="form-control" id="highlight-desc-2" value="5+ Years in Analytics">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-sm btn-danger">Remove</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="highlight-item-editor mb-4 p-3 border rounded">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <div class="mb-3">
+                                                <label class="form-label">Icon</label>
+                                                <select class="form-select" id="highlight-icon-3">
+                                                    <option value="fa-project-diagram">Project</option>
+                                                    <option value="fa-graduation-cap">Graduation</option>
+                                                    <option value="fa-briefcase">Briefcase</option>
+                                                    <option value="fa-trophy">Trophy</option>
+                                                    <option value="fa-star">Star</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="mb-3">
+                                                <label class="form-label">Title</label>
+                                                <input type="text" class="form-control" id="highlight-title-3" value="Projects">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="mb-3">
+                                                <label class="form-label">Description</label>
+                                                <input type="text" class="form-control" id="highlight-desc-3" value="50+ Completed">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-sm btn-danger">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-primary mt-2" id="add-highlight-btn">Add Highlight Item</button>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card mt-4">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Feature Cards</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="row" id="feature-cards-container">
+                                <div class="col-md-6 mb-3">
+                                    <div class="border p-3 rounded">
+                                        <div class="mb-3">
+                                            <label class="form-label">Icon</label>
+                                            <select class="form-select feature-card-icon">
+                                                <option value="fa-chart-line">Chart</option>
+                                                <option value="fa-users">Users</option>
+                                                <option value="fa-database">Database</option>
+                                                <option value="fa-lightbulb">Lightbulb</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Title</label>
+                                            <input type="text" class="form-control feature-card-title" value="Data Analysis">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control feature-card-desc" value="Transforming raw data into actionable insights">
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-danger">Remove</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="border p-3 rounded">
+                                        <div class="mb-3">
+                                            <label class="form-label">Icon</label>
+                                            <select class="form-select feature-card-icon">
+                                                <option value="fa-users">Users</option>
+                                                <option value="fa-chart-line">Chart</option>
+                                                <option value="fa-database">Database</option>
+                                                <option value="fa-lightbulb">Lightbulb</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Title</label>
+                                            <input type="text" class="form-control feature-card-title" value="CRM Strategy">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control feature-card-desc" value="Building meaningful customer relationships">
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-danger">Remove</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-primary" id="add-feature-card-btn">Add Feature Card</button>
+                        </div>
+                    </div>
+                </div>
                 
-                // Projects
-                const projectsList = document.getElementById('projects-list');
-                projectsList.innerHTML = '';
-                if(data.projects) {
-                    data.projects.forEach((project, index) => {
-                        projectsList.appendChild(createProjectElement(project, index));
-                    });
-                }
-                
-                // Certifications
-                const certsList = document.getElementById('certifications-list');
-                certsList.innerHTML = '';
-                if(data.certifications) {
-                    data.certifications.forEach((cert, index) => {
-                        certsList.appendChild(createCertificationElement(cert, index));
-                    });
-                }
-                
-                // Skills
-                const skillsContainer = document.getElementById('skills-container');
-                skillsContainer.innerHTML = '';
-                if(data.skills) {
-                    data.skills.forEach((skill, index) => {
-                        skillsContainer.appendChild(createSkillElement(skill, index));
-                    });
-                }
-            });
-        }
+                <div class="col-md-4">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">About Image</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="text-center mb-3">
+                                <img src="https://via.placeholder.com/400x500" id="about-image-preview" class="img-fluid rounded border" style="max-height: 300px; object-fit: cover;">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Upload New Image</label>
+                                <input type="file" class="form-control" id="about-profile-image">
+                                <small class="text-muted">Recommended size: 800x1000 pixels</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Image Style</label>
+                                <select class="form-select" id="about-image-style">
+                                    <option value="rounded">Rounded Corners</option>
+                                    <option value="circle">Circular</option>
+                                    <option value="square">Square</option>
+                                    <option value="polaroid">Polaroid</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Border Color</label>
+                                <input type="color" class="form-control form-control-color" id="about-image-border" value="#e9ecef">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card mt-4">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Section Settings</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Section Layout</label>
+                                <select class="form-select" id="about-layout">
+                                    <option value="image-left">Image Left</option>
+                                    <option value="image-right">Image Right</option>
+                                    <option value="no-image">No Image</option>
+                                    <option value="full-width">Full Width Text</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Background Color</label>
+                                <input type="color" class="form-control form-control-color" id="about-bg-color" value="#ffffff">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Text Color</label>
+                                <input type="color" class="form-control form-control-color" id="about-text-color" value="#212529">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Accent Color</label>
+                                <input type="color" class="form-control form-control-color" id="about-accent-color" value="#4361ee">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card mt-4">
+                        <div class="admin-card-header">
+                            <h5 class="mb-0">Preview</h5>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="preview-container">
+                                <h4>About Me</h4>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-graduation-cap me-3 text-primary"></i>
+                                            <div>
+                                                <h6 class="mb-0">Education</h6>
+                                                <small>Master's in Data Science</small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-briefcase me-3 text-primary"></i>
+                                            <div>
+                                                <h6 class="mb-0">Experience</h6>
+                                                <small>5+ Years in Analytics</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="fas fa-project-diagram me-3 text-primary"></i>
+                                            <div>
+                                                <h6 class="mb-0">Projects</h6>
+                                                <small>50+ Completed</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row mt-3">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-chart-line mb-3 text-primary" style="font-size: 2rem;"></i>
+                                                <h5>Data Analysis</h5>
+                                                <p class="text-muted">Transforming raw data into actionable insights</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-users mb-3 text-primary" style="font-size: 2rem;"></i>
+                                                <h5>CRM Strategy</h5>
+                                                <p class="text-muted">Building meaningful customer relationships</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-secondary">Reset</button>
+                        <button class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Projects Section Editor -->
+        <div class="admin-section" id="projects-section" style="display:none;">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2 class="mb-0">Projects Editor</h2>
+                    <p class="text-muted">Manage your portfolio projects.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Projects List</h5>
+                                <button class="btn btn-sm btn-primary" id="add-project-btn">Add New Project</button>
+                            </div>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Thumbnail</th>
+                                            <th>Title</th>
+                                            <th>Category</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td><img src="https://via.placeholder.com/80x60" class="img-thumbnail" style="width:80px;height:60px;object-fit:cover;"></td>
+                                            <td>Customer Segmentation Analysis</td>
+                                            <td>Data Analysis</td>
+                                            <td>2023-05-15</td>
+                                            <td><span class="badge bg-success">Published</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td><img src="https://via.placeholder.com/80x60" class="img-thumbnail" style="width:80px;height:60px;object-fit:cover;"></td>
+                                            <td>CRM Implementation</td>
+                                            <td>CRM</td>
+                                            <td>2023-03-22</td>
+                                            <td><span class="badge bg-success">Published</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td><img src="https://via.placeholder.com/80x60" class="img-thumbnail" style="width:80px;height:60px;object-fit:cover;"></td>
+                                            <td>Sales Dashboard</td>
+                                            <td>Data Visualization</td>
+                                            <td>2023-01-10</td>
+                                            <td><span class="badge bg-warning">Draft</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Project Editor Modal -->
+            <div class="modal fade" id="projectEditorModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Project</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label">Project Title</label>
+                                        <input type="text" class="form-control" id="project-title" value="Customer Segmentation Analysis">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Project Slug</label>
+                                        <input type="text" class="form-control" id="project-slug" value="customer-segmentation-analysis">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Short Description</label>
+                                        <textarea class="form-control" id="project-short-desc" rows="3">Advanced customer segmentation analysis for retail business</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Description</label>
+                                        <textarea class="form-control summernote" id="project-full-desc" rows="6"><p>This project involved analyzing customer purchase data to identify distinct segments within the customer base. Using clustering algorithms and RFM analysis, we identified 5 key customer segments with different purchasing behaviors.</p>
+<p>The insights helped the client tailor their marketing campaigns to each segment, resulting in a 23% increase in conversion rates.</p></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Featured Image</label>
+                                        <input type="file" class="form-control" id="project-featured-image">
+                                        <div class="mt-2">
+                                            <img src="https://via.placeholder.com/300x200" id="project-featured-preview" class="img-fluid rounded border">
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Project Category</label>
+                                        <select class="form-select" id="project-category">
+                                            <option>Data Analysis</option>
+                                            <option>CRM</option>
+                                            <option>Data Visualization</option>
+                                            <option>Machine Learning</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Project Date</label>
+                                        <input type="date" class="form-control" id="project-date" value="2023-05-15">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Project URL</label>
+                                        <input type="text" class="form-control" id="project-url" placeholder="https://example.com/project">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select class="form-select" id="project-status">
+                                            <option value="published">Published</option>
+                                            <option value="draft">Draft</option>
+                                            <option value="archived">Archived</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Project Tags</label>
+                                        <input type="text" class="form-control" id="project-tags" value="data-analysis, customer-segmentation, retail">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="admin-card mt-3">
+                                        <div class="admin-card-header">
+                                            <h6 class="mb-0">Project Gallery</h6>
+                                        </div>
+                                        <div class="admin-card-body">
+                                            <div class="row" id="project-gallery-container">
+                                                <div class="col-md-3 col-6 mb-3">
+                                                    <div class="position-relative">
+                                                        <img src="https://via.placeholder.com/200x150" class="img-thumbnail w-100">
+                                                        <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1">×</button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-6 mb-3">
+                                                    <div class="position-relative">
+                                                        <img src="https://via.placeholder.com/200x150" class="img-thumbnail w-100">
+                                                        <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1">×</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <input type="file" class="form-control" id="project-gallery-upload" multiple>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Certifications Section Editor -->
+        <div class="admin-section" id="certifications-section" style="display:none;">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h2 class="mb-0">Certifications Editor</h2>
+                    <p class="text-muted">Manage your professional certifications.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Certifications List</h5>
+                                <button class="btn btn-sm btn-primary" id="add-certification-btn">Add New Certification</button>
+                            </div>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Badge</th>
+                                            <th>Title</th>
+                                            <th>Issuer</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td><img src="https://via.placeholder.com/60x60" class="img-thumbnail rounded-circle" style="width:60px;height:60px;object-fit:cover;"></td>
+                                            <td>Google Data Analytics Professional</td>
+                                            <td>Google</td>
+                                            <td>2022-11-15</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td><img src="https://via.placeholder.com/60x60" class="img-thumbnail rounded-circle" style="width:60px;height:60px;object-fit:cover;"></td>
+                                            <td>Microsoft Certified: Data Analyst Associate</td>
+                                            <td>Microsoft</td>
+                                            <td>2022-08-22</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td><img src="https://via.placeholder.com/60x60" class="img-thumbnail rounded-circle" style="width:60px;height:60px;object-fit:cover;"></td>
+                                            <td>Salesforce Certified Administrator</td>
+                                            <td>Salesforce</td>
+                                            <td>2021-05-10</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Certification Editor Modal -->
+            <div class="modal fade" id="certificationEditorModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Certification</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label">Certification Title</label>
+                                        <input type="text" class="form-control" id="certification-title" value="Google Data Analytics Professional">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Issuing Organization</label>
+                                        <input type="text" class="form-control" id="certification-issuer" value="Google">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" id="certification-desc" rows="3">Professional certification in data analytics covering data cleaning, analysis, visualization, and R programming.</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Certification URL</label>
+                                        <input type="text" class="form-control" id="certification-url" value="https://www.coursera.org/professional-certificates/google-data-analytics">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Badge Image</label>
+                                        <input type="file" class="form-control" id="certification-badge-image">
+                                        <div class="mt-2">
+                                            <img src="https://via.placeholder.com/200x200" id="certification-badge-preview" class="img-fluid rounded-circle border" style="width:200px;height:200px;object-fit:cover;">
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Issue Date</label>
+                                        <input type="date" class="form-control" id="certification-issue-date" value="2022-11-15">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Expiration Date</label>
+                                        <input type="date" class="form-control" id="certification-expiry-date">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Credential ID</label>
+                                        <input type="text" class="form-control" id="certification-id" placeholder="Enter credential ID">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Helper function to extract file name from URL
-        function extractFileNameFromURL(url) {
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Summernote WYSIWYG Editor -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    
+    <!-- Color Picker -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/3.4.0/js/bootstrap-colorpicker.min.js"></script>
+    
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzY7LyyjPQ-856nZoZvwHM1my0KEQB40yTUyOLyoXqOJWR4I-IYO1ytQLUja0aXSW8/exec";
+        const ADMIN_PASSWORD = "Kais@730"; // Must match the one in server.gs
+        
+        // Check authentication
+        if(!localStorage.getItem("isAuthenticated")) {
+            window.location.href = "login.html";
+        }
+        
+        // Logout function
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem("isAuthenticated");
+            window.location.href = "login.html";
+        });
+
+        // Load section data
+        async function loadSectionData(section) {
             try {
-                const urlObj = new URL(url);
-                const pathParts = urlObj.pathname.split('/');
-                return decodeURIComponent(pathParts[pathParts.length - 1]);
-            } catch (e) {
-                return url;
-            }
-        }
-
-        // Create project element for admin
-        function createProjectElement(project, index) {
-            const element = document.createElement('div');
-            element.className = 'card mb-3 sortable-item';
-            element.dataset.index = index;
-            element.innerHTML = `
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Project #${index + 1}</h5>
-                        <button class="btn btn-sm btn-danger remove-item" data-type="project">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="form-group">
-                        <label>Title</label>
-                        <input type="text" class="form-control project-title" value="${project.title || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea class="form-control project-desc" rows="2">${project.description || ''}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Preview Image</label>
-                        <div class="file-upload-wrapper">
-                            <input type="text" id="project-image-${index}" class="form-control file-upload-input project-image" value="${project.image || ''}" placeholder="Image URL or upload file" readonly>
-                            <button class="file-upload-button project-image-upload-btn" data-project-id="${index}">Upload</button>
-                            <input type="file" id="project-image-upload-${index}" accept="image/*" style="display: none;">
-                        </div>
-                        <img id="project-preview-${index}" class="file-preview" src="${project.image || ''}" ${project.image ? '' : 'style="display: none;"'}>
-                        <div class="file-info" id="project-image-info-${index}">${project.image ? 'Current file: ' + extractFileNameFromURL(project.image) : ''}</div>
-                        <div class="upload-progress" id="project-image-progress-${index}" style="display: none;">
-                            <div class="upload-progress-bar" id="project-image-progress-bar-${index}"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Project File</label>
-                        <div class="file-upload-wrapper">
-                            <input type="text" id="project-link-${index}" class="form-control file-upload-input project-link" value="${project.link || ''}" placeholder="Project file URL or upload file" readonly>
-                            <button class="file-upload-button project-file-upload-btn" data-project-id="${index}">Upload</button>
-                            <input type="file" id="project-file-upload-${index}" accept="*/*" style="display: none;">
-                        </div>
-                        <div class="file-info" id="project-file-info-${index}">${project.link ? 'Current file: ' + extractFileNameFromURL(project.link) : ''}</div>
-                        <div class="upload-progress" id="project-file-progress-${index}" style="display: none;">
-                            <div class="upload-progress-bar" id="project-file-progress-bar-${index}"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Button Text</label>
-                        <input type="text" class="form-control project-btn-text" value="${project.buttonText || 'View Project'}">
-                    </div>
-                </div>
-            `;
-            return element;
-        }
-
-        // Create certification element for admin
-        function createCertificationElement(cert, index) {
-            const element = document.createElement('div');
-            element.className = 'card mb-3 sortable-item';
-            element.dataset.index = index;
-            element.innerHTML = `
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Certification #${index + 1}</h5>
-                        <button class="btn btn-sm btn-danger remove-item" data-type="certification">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="form-group">
-                        <label>Title</label>
-                        <input type="text" class="form-control cert-title" value="${cert.title || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea class="form-control cert-desc" rows="2">${cert.description || ''}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Preview Image</label>
-                        <div class="file-upload-wrapper">
-                            <input type="text" id="cert-image-${index}" class="form-control file-upload-input cert-image" value="${cert.image || ''}" placeholder="Image URL or upload file" readonly>
-                            <button class="file-upload-button cert-image-upload-btn" data-cert-id="${index}">Upload</button>
-                            <input type="file" id="cert-image-upload-${index}" accept="image/*" style="display: none;">
-                        </div>
-                        <img id="cert-preview-${index}" class="file-preview" src="${cert.image || ''}" ${cert.image ? '' : 'style="display: none;"'}>
-                        <div class="file-info" id="cert-image-info-${index}">${cert.image ? 'Current file: ' + extractFileNameFromURL(cert.image) : ''}</div>
-                        <div class="upload-progress" id="cert-image-progress-${index}" style="display: none;">
-                            <div class="upload-progress-bar" id="cert-image-progress-bar-${index}"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Certificate File</label>
-                        <div class="file-upload-wrapper">
-                            <input type="text" id="cert-link-${index}" class="form-control file-upload-input cert-link" value="${cert.link || ''}" placeholder="Certificate URL or upload file" readonly>
-                            <button class="file-upload-button cert-file-upload-btn" data-cert-id="${index}">Upload</button>
-                            <input type="file" id="cert-file-upload-${index}" accept="*/*" style="display: none;">
-                        </div>
-                        <div class="file-info" id="cert-file-info-${index}">${cert.link ? 'Current file: ' + extractFileNameFromURL(cert.link) : ''}</div>
-                        <div class="upload-progress" id="cert-file-progress-${index}" style="display: none;">
-                            <div class="upload-progress-bar" id="cert-file-progress-bar-${index}"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Button Text</label>
-                        <input type="text" class="form-control cert-btn-text" value="${cert.buttonText || 'View Certificate'}">
-                    </div>
-                </div>
-            `;
-            return element;
-        }
-
-        // Create skill element for admin
-        function createSkillElement(skill, index) {
-            const element = document.createElement('div');
-            element.className = 'badge badge-primary skill-badge mr-2 mb-2';
-            element.dataset.index = index;
-            element.innerHTML = `
-                ${skill}
-                <button class="btn btn-sm btn-danger ml-2 remove-skill" style="padding: 0 4px; line-height: 1;">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            return element;
-        }
-
-        // Initialize sortable lists
-        function initSortable() {
-            new Sortable(document.getElementById('projects-list'), {
-                animation: 150,
-                handle: '.sortable-item',
-                ghostClass: 'sortable-ghost'
-            });
-            
-            new Sortable(document.getElementById('certifications-list'), {
-                animation: 150,
-                handle: '.sortable-item',
-                ghostClass: 'sortable-ghost'
-            });
-        }
-
-        // Add new project
-        document.getElementById('add-project').addEventListener('click', () => {
-            const projectsList = document.getElementById('projects-list');
-            const newProject = {
-                title: 'New Project',
-                description: '',
-                image: '',
-                link: '',
-                buttonText: 'View Project'
-            };
-            projectsList.appendChild(createProjectElement(newProject, projectsList.children.length));
-        });
-
-        // Add new certification
-        document.getElementById('add-certification').addEventListener('click', () => {
-            const certsList = document.getElementById('certifications-list');
-            const newCert = {
-                title: 'New Certification',
-                description: '',
-                image: '',
-                link: '',
-                buttonText: 'View Certificate'
-            };
-            certsList.appendChild(createCertificationElement(newCert, certsList.children.length));
-        });
-
-        // Add new skill
-        document.getElementById('add-skill').addEventListener('click', () => {
-            const newSkill = document.getElementById('new-skill').value.trim();
-            if(newSkill) {
-                const skillsContainer = document.getElementById('skills-container');
-                skillsContainer.appendChild(createSkillElement(newSkill, skillsContainer.children.length));
-                document.getElementById('new-skill').value = '';
-            }
-        });
-
-        // Remove items
-        document.addEventListener('click', (e) => {
-            if(e.target.closest('.remove-item')) {
-                e.target.closest('.sortable-item').remove();
-            }
-            
-            if(e.target.closest('.remove-skill')) {
-                e.target.closest('.skill-badge').remove();
-            }
-        });
-
-        // Profile image upload and cropping
-        let cropper;
-        const profileImg = document.getElementById('profile-img');
-        const profileUpload = document.getElementById('profile-upload');
-        const cropModal = document.getElementById('cropModal');
-        
-        profileImg.addEventListener('click', () => profileUpload.click());
-        
-        profileUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                document.getElementById('cropImage').src = event.target.result;
-                cropModal.style.display = 'flex';
-                
-                if(cropper) cropper.destroy();
-                cropper = new Cropper(document.getElementById('cropImage'), {
-                    aspectRatio: 1,
-                    viewMode: 1,
-                    autoCropArea: 0.8
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: "getData",
+                        section: section,
+                        password: ADMIN_PASSWORD
+                    })
                 });
-            };
-            reader.readAsDataURL(file);
-        });
-        
-        document.getElementById('crop-cancel').addEventListener('click', () => {
-            cropModal.style.display = 'none';
-            if(cropper) cropper.destroy();
-        });
-        
-        document.getElementById('crop-save').addEventListener('click', () => {
-            const canvas = cropper.getCroppedCanvas({
-                width: 300,
-                height: 300,
-                minWidth: 256,
-                minHeight: 256,
-                maxWidth: 4096,
-                maxHeight: 4096,
-                fillColor: '#fff'
-            });
-            
-            // Upload the cropped image to Firebase Storage
-            canvas.toBlob((blob) => {
-                const storageRef = storage.ref(`profile_images/${Date.now()}_profile.jpg`);
-                const uploadTask = storageRef.put(blob);
+                const data = await response.json();
                 
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        // Progress monitoring if needed
-                    },
-                    (error) => {
-                        console.error('Upload failed:', error);
-                        alert('Profile image upload failed: ' + error.message);
-                    },
-                    () => {
-                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                            profileImg.src = downloadURL;
-                            cropModal.style.display = 'none';
-                            cropper.destroy();
-                        });
+                if (data.success) {
+                    switch(section) {
+                        case 'hero':
+                            if (data.data.length > 1) {
+                                const heroData = data.data[1];
+                                document.getElementById('hero-title').value = heroData[0] || '';
+                                document.getElementById('hero-subtitle').value = heroData[1] || '';
+                                document.getElementById('hero-description').value = heroData[2] || '';
+                                if (heroData[3]) {
+                                    document.getElementById('hero-image-preview').src = heroData[3];
+                                }
+                            }
+                            break;
+                        case 'about':
+                            if (data.data.length > 1) {
+                                const aboutData = data.data[1];
+                                document.getElementById('about-title').value = aboutData[0] || '';
+                                document.getElementById('about-heading').value = aboutData[1] || 'Who Am I?';
+                                document.getElementById('about-description').value = aboutData[2] || '';
+                                
+                                // Load highlights if available
+                                if (aboutData[3]) {
+                                    const highlights = JSON.parse(aboutData[3]);
+                                    const container = document.getElementById('about-highlights-container');
+                                    container.innerHTML = '';
+                                    
+                                    Object.values(highlights).forEach((highlight, index) => {
+                                        const highlightId = `highlight-${index + 1}`;
+                                        const highlightHTML = `
+                                            <div class="highlight-item-editor mb-4 p-3 border rounded" data-id="${highlightId}">
+                                                <div class="row">
+                                                    <div class="col-md-2">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Icon</label>
+                                                            <select class="form-select highlight-icon" id="${highlightId}-icon">
+                                                                <option value="fa-graduation-cap" ${highlight.icon === 'fa-graduation-cap' ? 'selected' : ''}>Graduation</option>
+                                                                <option value="fa-briefcase" ${highlight.icon === 'fa-briefcase' ? 'selected' : ''}>Briefcase</option>
+                                                                <option value="fa-project-diagram" ${highlight.icon === 'fa-project-diagram' ? 'selected' : ''}>Project</option>
+                                                                <option value="fa-trophy" ${highlight.icon === 'fa-trophy' ? 'selected' : ''}>Trophy</option>
+                                                                <option value="fa-star" ${highlight.icon === 'fa-star' ? 'selected' : ''}>Star</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-5">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Title</label>
+                                                            <input type="text" class="form-control highlight-title" id="${highlightId}-title" value="${highlight.title || ''}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-5">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Description</label>
+                                                            <input type="text" class="form-control highlight-desc" id="${highlightId}-desc" value="${highlight.description || ''}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-end">
+                                                    <button class="btn btn-sm btn-danger remove-highlight-btn">Remove</button>
+                                                </div>
+                                            </div>
+                                        `;
+                                        container.innerHTML += highlightHTML;
+                                        
+                                        // Add event listener to the new remove button
+                                        container.querySelector(`.remove-highlight-btn`).addEventListener('click', (e) => {
+                                            e.target.closest('.highlight-item-editor').remove();
+                                        });
+                                    });
+                                }
+                            }
+                            break;
+                        // Add cases for other sections (projects, certifications, etc.)
                     }
-                );
-            }, 'image/jpeg', 0.9);
-        });
+                }
+            } catch (error) {
+                console.error('Error loading section data:', error);
+                alert('Error loading section data');
+            }
+        }
 
-        // Save all data to Firebase
-        document.getElementById('save-btn').addEventListener('click', () => {
-            // Collect all data
-            const portfolioData = {
-                hero: {
-                    title: document.getElementById('profile-name').value,
-                    subtitle: document.getElementById('profile-title').value,
-                    image: document.getElementById('profile-img').src
+        // Save section data
+        async function saveSectionData(section, sectionData) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: "saveData",
+                        section: section,
+                        data: sectionData,
+                        password: ADMIN_PASSWORD
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Section saved successfully!');
+                    return true;
+                } else {
+                    alert('Error saving section: ' + result.message);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error saving section data:', error);
+                alert('Error saving section data');
+                return false;
+            }
+        }
+
+        // Upload file to Google Drive
+        async function uploadFile(file, folderName) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const base64Data = event.target.result.split(',')[1];
+                        const response = await fetch(API_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                action: "uploadFile",
+                                filename: file.name,
+                                base64Data: base64Data,
+                                folder: folderName,
+                                password: ADMIN_PASSWORD
+                            })
+                        });
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            resolve(result.url);
+                        } else {
+                            reject(result.message);
+                        }
+                    } catch (error) {
+                        reject(error.message);
+                    }
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Save hero section data
+        document.querySelector('#hero-section .btn-primary').addEventListener('click', async () => {
+            const heroData = {
+                title: document.getElementById('hero-title').value,
+                subtitle: document.getElementById('hero-subtitle').value,
+                description: document.getElementById('hero-description').value,
+                buttons: {
+                    primary_text: document.getElementById('hero-btn1-text').value,
+                    primary_link: document.getElementById('hero-btn1-link').value,
+                    secondary_text: document.getElementById('hero-btn2-text').value,
+                    secondary_link: document.getElementById('hero-btn2-link').value
                 },
-                resume: {
-                    url: document.getElementById('resume-url').value,
-                    description: document.getElementById('resume-desc').value
-                },
-                social: {
-                    twitter: document.getElementById('social-twitter').value,
-                    github: document.getElementById('social-github').value,
-                    linkedin: document.getElementById('social-linkedin').value,
-                    instagram: document.getElementById('social-instagram').value
-                },
-                projects: [],
-                certifications: [],
-                skills: []
+                image: {
+                    border_color: document.getElementById('hero-image-border').value,
+                    border_width: document.getElementById('hero-image-border-width').value,
+                    animation: document.getElementById('hero-image-animation').value
+                }
             };
             
-            // Collect projects
-            document.querySelectorAll('#projects-list .sortable-item').forEach(item => {
-                const index = item.dataset.index;
-                portfolioData.projects.push({
-                    title: item.querySelector('.project-title').value,
-                    description: item.querySelector('.project-desc').value,
-                    image: document.getElementById(`project-image-${index}`).value,
-                    link: document.getElementById(`project-link-${index}`).value,
-                    buttonText: item.querySelector('.project-btn-text').value
-                });
+            // Handle image upload if a new file was selected
+            const imageFile = document.getElementById('hero-profile-image').files[0];
+            if (imageFile) {
+                try {
+                    const imageUrl = await uploadFile(imageFile, 'portfolio_images');
+                    heroData.image.url = imageUrl;
+                } catch (error) {
+                    alert('Error uploading image: ' + error);
+                    return;
+                }
+            } else {
+                // Keep existing image URL if no new file was uploaded
+                const existingImg = document.getElementById('hero-image-preview').src;
+                if (existingImg && !existingImg.includes('via.placeholder.com')) {
+                    heroData.image.url = existingImg;
+                }
+            }
+            
+            // Save the data
+            const success = await saveSectionData('hero', heroData);
+            if (success) {
+                // Update preview
+                document.getElementById('hero-preview-title').textContent = heroData.title;
+                document.getElementById('hero-preview-subtitle').textContent = heroData.subtitle;
+                document.getElementById('hero-preview-desc').textContent = heroData.description;
+            }
+        });
+
+        // Save about section data
+        document.querySelector('#about-section .btn-primary').addEventListener('click', async () => {
+            const aboutData = {
+                title: document.getElementById('about-title').value,
+                heading: document.getElementById('about-heading').value,
+                description: document.getElementById('about-description').value,
+                layout: document.getElementById('about-layout').value,
+                bg_color: document.getElementById('about-bg-color').value,
+                text_color: document.getElementById('about-text-color').value,
+                accent_color: document.getElementById('about-accent-color').value,
+                highlights: {}
+            };
+            
+            // Collect highlight items
+            const highlightItems = document.querySelectorAll('.highlight-item-editor');
+            highlightItems.forEach((item, index) => {
+                aboutData.highlights[`highlight${index + 1}`] = {
+                    icon: item.querySelector('.highlight-icon').value,
+                    title: item.querySelector('.highlight-title').value,
+                    description: item.querySelector('.highlight-desc').value
+                };
             });
             
-            // Collect certifications
-            document.querySelectorAll('#certifications-list .sortable-item').forEach(item => {
-                const index = item.dataset.index;
-                portfolioData.certifications.push({
-                    title: item.querySelector('.cert-title').value,
-                    description: item.querySelector('.cert-desc').value,
-                    image: document.getElementById(`cert-image-${index}`).value,
-                    link: document.getElementById(`cert-link-${index}`).value,
-                    buttonText: item.querySelector('.cert-btn-text').value
-                });
-            });
+            // Handle about image upload
+            const imageFile = document.getElementById('about-profile-image').files[0];
+            if (imageFile) {
+                try {
+                    const imageUrl = await uploadFile(imageFile, 'portfolio_images');
+                    aboutData.image = {
+                        url: imageUrl,
+                        style: document.getElementById('about-image-style').value,
+                        border_color: document.getElementById('about-image-border').value
+                    };
+                } catch (error) {
+                    alert('Error uploading image: ' + error);
+                    return;
+                }
+            } else {
+                // Keep existing image URL if no new file was uploaded
+                const existingImg = document.getElementById('about-image-preview').src;
+                if (existingImg && !existingImg.includes('via.placeholder.com')) {
+                    aboutData.image = {
+                        url: existingImg,
+                        style: document.getElementById('about-image-style').value,
+                        border_color: document.getElementById('about-image-border').value
+                    };
+                }
+            }
             
-            // Collect skills
-            document.querySelectorAll('#skills-container .skill-badge').forEach(badge => {
-                const skillText = badge.textContent.replace('×', '').trim();
-                portfolioData.skills.push(skillText);
-            });
-            
-            // Save to Firebase
-            database.ref('portfolio').set(portfolioData)
-                .then(() => {
-                    alert('Portfolio saved successfully!');
-                })
-                .catch(error => {
-                    alert('Error saving portfolio: ' + error.message);
+            // Save the data
+            await saveSectionData('about', aboutData);
+        });
+
+        // Navigation - keep your existing navigation code but update to load data
+        const navLinks = document.querySelectorAll('.sidebar-menu a[data-target]');
+        const adminSections = document.querySelectorAll('.admin-section');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = link.getAttribute('data-target');
+                
+                // Update active state
+                navLinks.forEach(navLink => navLink.classList.remove('active'));
+                link.classList.add('active');
+                
+                // Show corresponding section
+                adminSections.forEach(section => {
+                    section.style.display = 'none';
+                    if (section.id === `${target}-section`) {
+                        section.style.display = 'block';
+                        loadSectionData(target);
+                    }
                 });
+                
+                // Close sidebar on mobile
+                if (window.innerWidth < 768) {
+                    document.getElementById('sidebar').classList.remove('active');
+                }
+            });
+        });
+        
+        // Quick actions
+        const quickActions = document.querySelectorAll('.quick-action');
+        quickActions.forEach(action => {
+            action.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = action.getAttribute('data-target');
+                
+                // Find and click the corresponding nav link
+                const navLink = document.querySelector(`.sidebar-menu a[data-target="${target}"]`);
+                if (navLink) {
+                    navLink.click();
+                }
+            });
+        });
+
+        // Initialize Summernote
+        $(document).ready(function() {
+            $('.summernote').summernote({
+                height: 200,
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['font', ['strikethrough', 'superscript', 'subscript']],
+                    ['fontsize', ['fontsize']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['height', ['height']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ]
+            });
+        });
+        
+        // Initialize color pickers
+        $('.colorpicker').colorpicker();
+
+        // Background type toggle for hero section
+        const heroBgType = document.getElementById('hero-bg-type');
+        const heroGradientSettings = document.getElementById('hero-gradient-settings');
+        const heroImageSettings = document.getElementById('hero-image-settings');
+        const heroColorSettings = document.getElementById('hero-color-settings');
+        
+        heroBgType.addEventListener('change', () => {
+            const value = heroBgType.value;
+            
+            heroGradientSettings.style.display = value === 'gradient' ? 'block' : 'none';
+            heroImageSettings.style.display = value === 'image' ? 'block' : 'none';
+            heroColorSettings.style.display = value === 'color' ? 'block' : 'none';
+        });
+        
+        // Preview profile image upload
+        const heroProfileImage = document.getElementById('hero-profile-image');
+        const heroImagePreview = document.getElementById('hero-image-preview');
+        
+        heroProfileImage.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    heroImagePreview.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Add highlight item
+        const addHighlightBtn = document.getElementById('add-highlight-btn');
+        const highlightsContainer = document.getElementById('about-highlights-container');
+        let highlightCount = document.querySelectorAll('.highlight-item-editor').length;
+        
+        addHighlightBtn.addEventListener('click', () => {
+            highlightCount++;
+            const newHighlight = document.createElement('div');
+            newHighlight.className = 'highlight-item-editor mb-4 p-3 border rounded';
+            newHighlight.innerHTML = `
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Icon</label>
+                            <select class="form-select" id="highlight-icon-${highlightCount}">
+                                <option value="fa-graduation-cap">Graduation</option>
+                                <option value="fa-briefcase">Briefcase</option>
+                                <option value="fa-project-diagram">Project</option>
+                                <option value="fa-trophy">Trophy</option>
+                                <option value="fa-star">Star</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" id="highlight-title-${highlightCount}" placeholder="Enter title">
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <input type="text" class="form-control" id="highlight-desc-${highlightCount}" placeholder="Enter description">
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-sm btn-danger remove-highlight-btn">Remove</button>
+                </div>
+            `;
+            highlightsContainer.appendChild(newHighlight);
+            
+            // Add event listener to the new remove button
+            newHighlight.querySelector('.remove-highlight-btn').addEventListener('click', () => {
+                highlightsContainer.removeChild(newHighlight);
+            });
+        });
+        
+        // Add feature card
+        const addFeatureCardBtn = document.getElementById('add-feature-card-btn');
+        const featureCardsContainer = document.getElementById('feature-cards-container');
+        
+        addFeatureCardBtn.addEventListener('click', () => {
+            const newCardCol = document.createElement('div');
+            newCardCol.className = 'col-md-6 mb-3';
+            newCardCol.innerHTML = `
+                <div class="border p-3 rounded">
+                    <div class="mb-3">
+                        <label class="form-label">Icon</label>
+                        <select class="form-select feature-card-icon">
+                            <option value="fa-chart-line">Chart</option>
+                            <option value="fa-users">Users</option>
+                            <option value="fa-database">Database</option>
+                            <option value="fa-lightbulb">Lightbulb</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control feature-card-title" placeholder="Enter title">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control feature-card-desc" placeholder="Enter description">
+                    </div>
+                    <div class="text-end">
+                        <button class="btn btn-sm btn-danger remove-feature-card-btn">Remove</button>
+                    </div>
+                </div>
+            `;
+            featureCardsContainer.appendChild(newCardCol);
+            
+            // Add event listener to the new remove button
+            newCardCol.querySelector('.remove-feature-card-btn').addEventListener('click', () => {
+                featureCardsContainer.removeChild(newCardCol);
+            });
+        });
+        
+        // Project editor modal
+        const addProjectBtn = document.getElementById('add-project-btn');
+        const projectEditorModal = new bootstrap.Modal(document.getElementById('projectEditorModal'));
+        
+        addProjectBtn.addEventListener('click', () => {
+            // Reset form for new project
+            document.getElementById('project-title').value = '';
+            document.getElementById('project-slug').value = '';
+            document.getElementById('project-short-desc').value = '';
+            document.getElementById('project-full-desc').value = '';
+            document.getElementById('project-featured-preview').src = 'https://via.placeholder.com/300x200';
+            document.getElementById('project-category').value = 'Data Analysis';
+            document.getElementById('project-date').value = '';
+            document.getElementById('project-url').value = '';
+            document.getElementById('project-status').value = 'published';
+            document.getElementById('project-tags').value = '';
+            
+            // Update modal title
+            document.querySelector('#projectEditorModal .modal-title').textContent = 'Add New Project';
+            
+            // Show modal
+            projectEditorModal.show();
+        });
+        
+        // Certification editor modal
+        const addCertificationBtn = document.getElementById('add-certification-btn');
+        const certificationEditorModal = new bootstrap.Modal(document.getElementById('certificationEditorModal'));
+        
+        addCertificationBtn.addEventListener('click', () => {
+            // Reset form for new certification
+            document.getElementById('certification-title').value = '';
+            document.getElementById('certification-issuer').value = '';
+            document.getElementById('certification-desc').value = '';
+            document.getElementById('certification-url').value = '';
+            document.getElementById('certification-badge-preview').src = 'https://via.placeholder.com/200x200';
+            document.getElementById('certification-issue-date').value = '';
+            document.getElementById('certification-expiry-date').value = '';
+            document.getElementById('certification-id').value = '';
+            
+            // Update modal title
+            document.querySelector('#certificationEditorModal .modal-title').textContent = 'Add New Certification';
+            
+            // Show modal
+            certificationEditorModal.show();
+        });
+
+        // Initialize the dashboard as the default view
+        document.addEventListener('DOMContentLoaded', () => {
+            // Show dashboard by default
+            document.querySelector('.sidebar-menu a[data-target="dashboard"]').click();
+            
+            // Load any initial data needed for the dashboard
+            // For example, you might want to load visitor counts, message counts, etc.
         });
     </script>
 </body>
 </html>
+                                                 
